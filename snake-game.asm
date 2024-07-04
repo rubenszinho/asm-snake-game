@@ -1322,14 +1322,18 @@ PrintFood:
     pop r0
     rts
 
-; Função para delay
+; A função de delay foi configurada para operar com 1,200,000 ciclos totais, o que equivale a um delay de 0.1 segundo,
+; considerando que a frequência de clock da máquina é de 12 MHz. Esse ajuste é específico para garantir a precisão
+; temporal para simulações e operações que requerem esta configuração específica de delay.
+; A prova real de cálculo: 1,200,000 ciclos / (12,000,000 ciclos/segundo) = 0.1 segundo, confirma que o delay
+; está corretamente configurado para essa frequência de clock.
 Delay:
     push r0
     push r1
 
-    loadn r1, #400            ; Define o valor inicial do contador externo
+    loadn r1, #4000            ; Define o valor inicial do contador externo
     DelayLoop2:
-        loadn r0, #3000       ; Define o valor inicial do contador interno
+        loadn r0, #300       ; Define o valor inicial do contador interno
     DelayLoop:
         dec r0                ; Decrementa o contador interno
         jnz DelayLoop         ; Se não zero, repete o loop interno

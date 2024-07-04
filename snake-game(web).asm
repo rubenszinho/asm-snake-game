@@ -948,11 +948,11 @@ InitGame:
 
     ; Loop do menu
     MenuLoop:
-        loadn r3, #255         ; Valor padrão da tecla se nenhuma tecla for pressionada
+        loadn r3, #13         ; Valor padrão da tecla se nenhuma tecla for pressionada
         inchar r4              ; Entrada do teclado
         cmp r4, r3             ; Compara se a tecla enter foi pressionada
-        jeq MenuLoop           ; Continua lendo até que uma tecla válida seja pressionada
-        jmp StartGame          ; Se sim, inicia o jogo
+        jeq StartGame           ; Continua lendo até que uma tecla válida seja pressionada
+        jmp MenuLoop          ; Se sim, inicia o jogo
 
     ; Tela de morte
     DeathScreen:
@@ -1478,8 +1478,8 @@ TelaInit20 : string "|                                      |"
 TelaInit21 : string "|                                      |"
 TelaInit22 : string "|                                      |"
 TelaInit23 : string "|                                      |"
-TelaInit24 : string "|        Press any key to start        |"
-TelaInit25 : string "|        _____ ___ ___ __ _____        |"
+TelaInit24 : string "|        Press enter key to start      |"
+TelaInit25 : string "|        _____ _____ ___ __ _____      |"
 TelaInit26 : string "|                                      |"
 TelaInit27 : string "|                                      |"
 TelaInit28 : string "|                                      |"
