@@ -1331,7 +1331,7 @@ Delay:
     push r0
     push r1
 
-    loadn r1, #4000            ; Define o valor inicial do contador externo
+    loadn r1, #400            ; Define o valor inicial do contador externo
     DelayLoop2:
         loadn r0, #300       ; Define o valor inicial do contador interno
     DelayLoop:
