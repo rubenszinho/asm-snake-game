@@ -1246,57 +1246,70 @@ ClearScreen:
     rts
 
 ; Função para imprimir a tela
-PrintScreen:
-    push r0
-    push r3
-    push r4
-    push r5
+PrintScreen:   ;  Rotina de Impresao de Cenario na Tela Inteira
+        ;  r1 = endereco onde comeca a primeira linha do Cenario
+        ;  r2 = cor do Cenario para ser impresso
 
-    loadn r0, #0              ; Posição inicial deve ser o começo da tela
-    loadn r3, #40             ; Passa para a próxima linha
-    loadn r4, #41             ; Incremento do ponteiro
-    loadn r5, #1200           ; Limite da tela
+    push r0 ; protege o r3 na pilha para ser usado na subrotina
+    push r1 ; protege o r1 na pilha para preservar seu valor
+    push r2 ; protege o r1 na pilha para preservar seu valor
+    push r3 ; protege o r3 na pilha para ser usado na subrotina
+    push r4 ; protege o r4 na pilha para ser usado na subrotina
+    push r5 ; protege o r5 na pilha para ser usado na subrotina
 
-    PrintScreenLoop:
-        call PrintStr         ; Chama a função para imprimir cada pixel
-        add r0, r0, r3        ; Incrementa a posição para a próxima linha na tela
-        add r1, r1, r4        ; Incrementa o ponteiro para a próxima linha na memória
-        cmp r0, r5            ; Verifica se o fim da tela foi alcançado
-        jne PrintScreenLoop
+    loadn R0, #0    ; posicao inicial tem que ser o comeco da tela!
+    loadn R3, #40   ; Incremento da posicao da tela!
+    loadn R4, #41   ; incremento do ponteiro das linhas da tela
+    loadn R5, #1200 ; Limite da tela!
+    
+   PrintScreenLoop:
+        call PrintStr
+        add r0, r0, r3      ; incrementaposicao para a segunda linha na tela -->  r0 = R0 + 40
+        add r1, r1, r4      ; incrementa o ponteiro para o comeco da proxima linha na memoria (40 + 1 porcausa do /0 !!) --> r1 = r1 + 41
+        cmp r0, r5          ; Compara r0 com 1200
+        jne PrintScreenLoop   ; Enquanto r0 < 1200
 
-    pop r5
+    pop r5  ; Resgata os valores dos registradores utilizados na Subrotina da Pilha
     pop r4
     pop r3
+    pop r2
+    pop r1
     pop r0
     rts
 
 ; Função para imprimir uma string
-PrintStr:
-    push r0
-    push r1
-    push r2
-    push r3
-    push r4
+PrintStr:    ;  Rotina de Impresao de Mensagens:    r0 = Posicao da tela que o primeiro caractere da mensagem sera' impresso;  r1 = endereco onde comeca a mensagem; r2 = cor da mensagem.   Obs: a mensagem sera' impressa ate' encontrar "/0"
+    push r0 ; protege o r0 na pilha para preservar seu valor
+    push r1 ; protege o r1 na pilha para preservar seu valor
+    push r2 ; protege o r1 na pilha para preservar seu valor
+    push r3 ; protege o r3 na pilha para ser usado na subrotina
+    push r4 ; protege o r4 na pilha para ser usado na subrotina
+    push r5 ; protege o r5 na pilha para ser usado na subrotina
+    
+    loadn r3, #'\0' ; Criterio de parada
+    loadn r5, #' '  ; Espaco em Branco
 
-    loadn r3, #'\0'           ; Critério de parada
-
-    PrintStrLoop:
-        loadi r4, r1          ; Obtém o primeiro caractere
-        cmp r4, r3            ; Verifica o critério de parada
-        jeq PrintStrExit
-        add r4, r2, r4        ; Adiciona a cor
-        outchar r4, r0        ; Imprime o caractere na tela
-        inc r0                ; Incrementa a posição na tela
-        inc r1                ; Incrementa o ponteiro da string
+   PrintStrLoop:    
+        loadi r4, r1
+        cmp r4, r3      ; If (Char == \0)  vai Embora
+        jeq PrintStrSai
+        cmp r4, r5      ; If (Char == ' ')  vai Pula outchar do espaco para na apagar outros caracteres
+        jeq PrintStrSkip
+        add r4, r2, r4  ; Soma a Cor
+        outchar r4, r0  ; Imprime o caractere na tela
+   PrintStrSkip:
+        inc r0          ; Incrementa a posicao na tela
+        inc r1          ; Incrementa o ponteiro da String
         jmp PrintStrLoop
-
-    PrintStrExit:
-        pop r4
-        pop r3
-        pop r2
-        pop r1
-        pop r0
-        rts
+    
+   PrintStrSai: 
+    pop r5  ; Resgata os valores dos registradores utilizados na Subrotina da Pilha
+    pop r4
+    pop r3
+    pop r2
+    pop r1
+    pop r0
+    rts
 
 ; Função para imprimir a comida
 PrintFood:
@@ -1425,11 +1438,11 @@ DisplayScoreDeathScreen:
 ;---------------------------------- TELA DO JOGO-------------------------------------------------------	
 TelaJogo0  : string "|======================================|"
 TelaJogo1  : string "|                                      |"
-TelaJogo0  : string "|======================================|"
+TelaJogo2  : string "|                                      |"
+TelaJogo3  : string "|                                      |"
 TelaJogo4  : string "|                                      |"
 TelaJogo5  : string "|                                      |"
 TelaJogo6  : string "|                                      |"
-TelaJogo3  : string "|                                      |"
 TelaJogo7  : string "|                                      |"
 TelaJogo8  : string "|                                      |"
 TelaJogo9  : string "|                                      |"
@@ -1464,7 +1477,7 @@ TelaInit5  : string "|         @   @ @ @ @ @ @ @            |"
 TelaInit6  : string "|         @@@ @ @ @@@ @@  @@@          |"
 TelaInit7  : string "|           @ @ @ @ @ @ @ @            |"
 TelaInit8  : string "|         @@@ @ @ @ @ @ @ @@@          |"
-TelaInit9 : string 	"|                                      |"
+TelaInit9  : string "|                                      |"
 TelaInit10 : string "|                                      |"
 TelaInit11 : string "|         @@@ @@@ @ @ @@@              |"
 TelaInit12 : string "|         @   @ @ @@@ @                |"
@@ -1511,9 +1524,9 @@ telaFim20 : string "|                                      |"
 telaFim21 : string "|                   POINTS             |"
 telaFim22 : string "|                                      |"
 telaFim23 : string "|                                      |"
-telaFim24 : string "|                                      |"
 telaFim24 : string "|        Press any key to restart      |"
 telaFim25 : string "|        _____ ___ ___ __ _______      |"
 telaFim26 : string "|                                      |"
+telaFim27 : string "|                                      |"
 telaFim28 : string "|                                      |"
 telaFim29 : string "|======================================|"
