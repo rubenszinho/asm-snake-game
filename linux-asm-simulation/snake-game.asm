@@ -13,10 +13,15 @@ SnakeBody: var #300            ; Armazena as posições do corpo da cobra
 UnitScore: var #1
 TenScore: var #1
 HundredScore: var #1
-; Valores iniciais
+
+; Valores iniciais das variáveis
 static UnitScore, #'0'
 static TenScore, #'0'
 static HundredScore, #'0'
+static FoodIndex, #0
+static SnakePos, #700
+static Length, #0
+static LastKey, #'w'
 
 ; O cálculo da aleatoriedade das frutas no jogo é feito utilizando uma lista predefinida de posições (pseudo-aleatória). 
 ; Cada vez que a cobra come uma fruta, o índice (FoodIndex) é incrementado, apontando para a próxima posição na lista Food. 
@@ -939,12 +944,17 @@ static Food + #911, #684
 
 ; Inicialização do jogo
 InitGame:
-    ; Tela de menu
-    MenuScreen:
-        call ClearScreen       ; Limpa a tela
-        loadn r1, #TelaInit0   ; Endereço da primeira linha da cena do menu
-        loadn r2, #1280        ; Cor roxa
-        call PrintScreen       ; Imprime a cena do menu com a cor roxa
+    ; Inicializa variáveis básicas primeiro
+    loadn r0, #0
+    store FoodIndex, r0
+    store Length, r0
+    loadn r0, #700
+    store SnakePos, r0
+    loadn r0, #'w'
+    store LastKey, r0
+    
+    ; Vai direto para o jogo (pular menu por enquanto)
+    jmp StartGame
 
     ; Loop do menu
     MenuLoop:
@@ -967,23 +977,30 @@ InitGame:
         loadn r3, #255         ; Valor padrão da tecla se nenhuma tecla for pressionada
         inchar r4              ; Entrada do teclado
         cmp r4, r3             ; Compara se a tecla enter foi pressionada
-        jeq MenuLoop           ; Continua lendo até que uma tecla válida seja pressionada
+        jeq DeathLoop          ; Continua lendo até que uma tecla válida seja pressionada
         jmp StartGame          ; Se sim, inicia o jogo
 
     ; Inicialização do jogo
     StartGame:
         call ClearScreen       ; Limpa a tela
-        loadn r1, #TelaJogo0   ; Endereço da primeira linha da cena do jogo
-        loadn r2, #1536        ; Cor azul claro
-        call PrintScreen       ; Imprime a cena do jogo na cor azul claro
-        loadn r5, #0           ; Reinicia o comprimento
-        store Length, r5
+        
+        ; Inicializa todas as variáveis
+        loadn r0, #0           ; Reinicia o FoodIndex
+        store FoodIndex, r0
+        loadn r0, #0           ; Reinicia o comprimento
+        store Length, r0
         loadn r0, #700         ; Posição inicial da cobra
         store SnakePos, r0     ; Armazena a posição na variável
         dec r0
         store SnakeBody, r0    ; Posição inicial do corpo da cobra
         loadn r0, #'w'         ; Configura para mover a cobra para cima inicialmente
         store LastKey, r0      ; Armazena em LastKey para manter o movimento a cada ciclo
+        
+        ; Imprime a tela do jogo
+        loadn r1, #TelaJogo0   ; Endereço da primeira linha da cena do jogo
+        loadn r2, #1536        ; Cor azul claro
+        call PrintScreen       ; Imprime a cena do jogo na cor azul claro
+        
         call PrintFood         ; Chama a função para exibir a primeira comida no jogo
         call ResetScore        ; Reseta o score
 
@@ -1311,7 +1328,7 @@ PrintStr:    ;  Rotina de Impresao de Mensagens:    r0 = Posicao da tela que o p
     pop r0
     rts
 
-; Função para imprimir a comida
+; Função para imprimir a comida (versão simplificada)
 PrintFood:
     push r0
     push r1
@@ -1319,15 +1336,9 @@ PrintFood:
     push r3
 
     loadn r1, #298            ; Caractere * marrom
-    loadn r2, #Food         ; Endereço do vetor de posição da comida
-    load r3, FoodIndex        ; Incremento para caminhar pelo vetor
-    add r0, r2, r3            ; Calcula a posição da comida
-    loadi r2, r0              ; Carrega a posição da comida na tela
-    outchar r1, r2            ; Imprime a comida na posição calculada
-
-    inc r3                    ; Incrementa o índice para a próxima comida
-    store FoodIndex, r3
-    store FoodPos, r2
+    loadn r2, #536            ; Posição fixa para teste
+    outchar r1, r2            ; Imprime a comida na posição fixa
+    store FoodPos, r2         ; Armazena a posição
 
     pop r3
     pop r2
@@ -1344,7 +1355,7 @@ Delay:
     push r0
     push r1
 
-    loadn r1, #400            ; Define o valor inicial do contador externo
+    loadn r1, #4000            ; Define o valor inicial do contador externo
     DelayLoop2:
         loadn r0, #300       ; Define o valor inicial do contador interno
     DelayLoop:
