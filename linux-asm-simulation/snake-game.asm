@@ -13,15 +13,10 @@ SnakeBody: var #300            ; Armazena as posições do corpo da cobra
 UnitScore: var #1
 TenScore: var #1
 HundredScore: var #1
-
-; Valores iniciais das variáveis
+; Valores iniciais
 static UnitScore, #'0'
 static TenScore, #'0'
 static HundredScore, #'0'
-static FoodIndex, #0
-static SnakePos, #700
-static Length, #0
-static LastKey, #'w'
 
 ; O cálculo da aleatoriedade das frutas no jogo é feito utilizando uma lista predefinida de posições (pseudo-aleatória). 
 ; Cada vez que a cobra come uma fruta, o índice (FoodIndex) é incrementado, apontando para a próxima posição na lista Food. 
@@ -944,17 +939,12 @@ static Food + #911, #684
 
 ; Inicialização do jogo
 InitGame:
-    ; Inicializa variáveis básicas primeiro
-    loadn r0, #0
-    store FoodIndex, r0
-    store Length, r0
-    loadn r0, #700
-    store SnakePos, r0
-    loadn r0, #'w'
-    store LastKey, r0
-    
-    ; Vai direto para o jogo (pular menu por enquanto)
-    jmp StartGame
+    ; Tela de menu
+    MenuScreen:
+        call ClearScreen       ; Limpa a tela
+        loadn r1, #TelaInit0   ; Endereço da primeira linha da cena do menu
+        loadn r2, #1280        ; Cor roxa
+        call PrintScreen       ; Imprime a cena do menu com a cor roxa
 
     ; Loop do menu
     MenuLoop:
@@ -977,30 +967,23 @@ InitGame:
         loadn r3, #255         ; Valor padrão da tecla se nenhuma tecla for pressionada
         inchar r4              ; Entrada do teclado
         cmp r4, r3             ; Compara se a tecla enter foi pressionada
-        jeq DeathLoop          ; Continua lendo até que uma tecla válida seja pressionada
+        jeq MenuLoop           ; Continua lendo até que uma tecla válida seja pressionada
         jmp StartGame          ; Se sim, inicia o jogo
 
     ; Inicialização do jogo
     StartGame:
         call ClearScreen       ; Limpa a tela
-        
-        ; Inicializa todas as variáveis
-        loadn r0, #0           ; Reinicia o FoodIndex
-        store FoodIndex, r0
-        loadn r0, #0           ; Reinicia o comprimento
-        store Length, r0
+        loadn r1, #TelaJogo0   ; Endereço da primeira linha da cena do jogo
+        loadn r2, #1536        ; Cor azul claro
+        call PrintScreen       ; Imprime a cena do jogo na cor azul claro
+        loadn r5, #0           ; Reinicia o comprimento
+        store Length, r5
         loadn r0, #700         ; Posição inicial da cobra
         store SnakePos, r0     ; Armazena a posição na variável
         dec r0
         store SnakeBody, r0    ; Posição inicial do corpo da cobra
         loadn r0, #'w'         ; Configura para mover a cobra para cima inicialmente
         store LastKey, r0      ; Armazena em LastKey para manter o movimento a cada ciclo
-        
-        ; Imprime a tela do jogo
-        loadn r1, #TelaJogo0   ; Endereço da primeira linha da cena do jogo
-        loadn r2, #1536        ; Cor azul claro
-        call PrintScreen       ; Imprime a cena do jogo na cor azul claro
-        
         call PrintFood         ; Chama a função para exibir a primeira comida no jogo
         call ResetScore        ; Reseta o score
 
@@ -1263,72 +1246,59 @@ ClearScreen:
     rts
 
 ; Função para imprimir a tela
-PrintScreen:   ;  Rotina de Impresao de Cenario na Tela Inteira
-        ;  r1 = endereco onde comeca a primeira linha do Cenario
-        ;  r2 = cor do Cenario para ser impresso
+PrintScreen:
+    push r0
+    push r3
+    push r4
+    push r5
 
-    push r0 ; protege o r3 na pilha para ser usado na subrotina
-    push r1 ; protege o r1 na pilha para preservar seu valor
-    push r2 ; protege o r1 na pilha para preservar seu valor
-    push r3 ; protege o r3 na pilha para ser usado na subrotina
-    push r4 ; protege o r4 na pilha para ser usado na subrotina
-    push r5 ; protege o r5 na pilha para ser usado na subrotina
+    loadn r0, #0              ; Posição inicial deve ser o começo da tela
+    loadn r3, #40             ; Passa para a próxima linha
+    loadn r4, #41             ; Incremento do ponteiro
+    loadn r5, #1200           ; Limite da tela
 
-    loadn R0, #0    ; posicao inicial tem que ser o comeco da tela!
-    loadn R3, #40   ; Incremento da posicao da tela!
-    loadn R4, #41   ; incremento do ponteiro das linhas da tela
-    loadn R5, #1200 ; Limite da tela!
-    
-   PrintScreenLoop:
-        call PrintStr
-        add r0, r0, r3      ; incrementaposicao para a segunda linha na tela -->  r0 = R0 + 40
-        add r1, r1, r4      ; incrementa o ponteiro para o comeco da proxima linha na memoria (40 + 1 porcausa do /0 !!) --> r1 = r1 + 41
-        cmp r0, r5          ; Compara r0 com 1200
-        jne PrintScreenLoop   ; Enquanto r0 < 1200
+    PrintScreenLoop:
+        call PrintStr         ; Chama a função para imprimir cada pixel
+        add r0, r0, r3        ; Incrementa a posição para a próxima linha na tela
+        add r1, r1, r4        ; Incrementa o ponteiro para a próxima linha na memória
+        cmp r0, r5            ; Verifica se o fim da tela foi alcançado
+        jne PrintScreenLoop
 
-    pop r5  ; Resgata os valores dos registradores utilizados na Subrotina da Pilha
+    pop r5
     pop r4
     pop r3
-    pop r2
-    pop r1
     pop r0
     rts
 
 ; Função para imprimir uma string
-PrintStr:    ;  Rotina de Impresao de Mensagens:    r0 = Posicao da tela que o primeiro caractere da mensagem sera' impresso;  r1 = endereco onde comeca a mensagem; r2 = cor da mensagem.   Obs: a mensagem sera' impressa ate' encontrar "/0"
-    push r0 ; protege o r0 na pilha para preservar seu valor
-    push r1 ; protege o r1 na pilha para preservar seu valor
-    push r2 ; protege o r1 na pilha para preservar seu valor
-    push r3 ; protege o r3 na pilha para ser usado na subrotina
-    push r4 ; protege o r4 na pilha para ser usado na subrotina
-    push r5 ; protege o r5 na pilha para ser usado na subrotina
-    
-    loadn r3, #'\0' ; Criterio de parada
-    loadn r5, #' '  ; Espaco em Branco
+PrintStr:
+    push r0
+    push r1
+    push r2
+    push r3
+    push r4
 
-   PrintStrLoop:    
-        loadi r4, r1
-        cmp r4, r3      ; If (Char == \0)  vai Embora
-        jeq PrintStrSai
-        cmp r4, r5      ; If (Char == ' ')  vai Pula outchar do espaco para na apagar outros caracteres
-        jeq PrintStrSkip
-        add r4, r2, r4  ; Soma a Cor
-        outchar r4, r0  ; Imprime o caractere na tela
-   PrintStrSkip:
-        inc r0          ; Incrementa a posicao na tela
-        inc r1          ; Incrementa o ponteiro da String
+    loadn r3, #'\0'           ; Critério de parada
+
+    PrintStrLoop:
+        loadi r4, r1          ; Obtém o primeiro caractere
+        cmp r4, r3            ; Verifica o critério de parada
+        jeq PrintStrExit
+        add r4, r2, r4        ; Adiciona a cor
+        outchar r4, r0        ; Imprime o caractere na tela
+        inc r0                ; Incrementa a posição na tela
+        inc r1                ; Incrementa o ponteiro da string
         jmp PrintStrLoop
-    
-   PrintStrSai: 
-    pop r5  ; Resgata os valores dos registradores utilizados na Subrotina da Pilha
-    pop r4
-    pop r3
-    pop r2
-    pop r1
-    pop r0
-    rts
 
-; Função para imprimir a comida (versão simplificada)
+    PrintStrExit:
+        pop r4
+        pop r3
+        pop r2
+        pop r1
+        pop r0
+        rts
+
+; Função para imprimir a comida
 PrintFood:
     push r0
     push r1
@@ -1336,9 +1306,15 @@ PrintFood:
     push r3
 
     loadn r1, #298            ; Caractere * marrom
-    loadn r2, #536            ; Posição fixa para teste
-    outchar r1, r2            ; Imprime a comida na posição fixa
-    store FoodPos, r2         ; Armazena a posição
+    loadn r2, #Food         ; Endereço do vetor de posição da comida
+    load r3, FoodIndex        ; Incremento para caminhar pelo vetor
+    add r0, r2, r3            ; Calcula a posição da comida
+    loadi r2, r0              ; Carrega a posição da comida na tela
+    outchar r1, r2            ; Imprime a comida na posição calculada
+
+    inc r3                    ; Incrementa o índice para a próxima comida
+    store FoodIndex, r3
+    store FoodPos, r2
 
     pop r3
     pop r2
@@ -1449,11 +1425,11 @@ DisplayScoreDeathScreen:
 ;---------------------------------- TELA DO JOGO-------------------------------------------------------	
 TelaJogo0  : string "|======================================|"
 TelaJogo1  : string "|                                      |"
-TelaJogo2  : string "|                                      |"
-TelaJogo3  : string "|                                      |"
+TelaJogo0  : string "|======================================|"
 TelaJogo4  : string "|                                      |"
 TelaJogo5  : string "|                                      |"
 TelaJogo6  : string "|                                      |"
+TelaJogo3  : string "|                                      |"
 TelaJogo7  : string "|                                      |"
 TelaJogo8  : string "|                                      |"
 TelaJogo9  : string "|                                      |"
@@ -1488,7 +1464,7 @@ TelaInit5  : string "|         @   @ @ @ @ @ @ @            |"
 TelaInit6  : string "|         @@@ @ @ @@@ @@  @@@          |"
 TelaInit7  : string "|           @ @ @ @ @ @ @ @            |"
 TelaInit8  : string "|         @@@ @ @ @ @ @ @ @@@          |"
-TelaInit9  : string "|                                      |"
+TelaInit9 : string 	"|                                      |"
 TelaInit10 : string "|                                      |"
 TelaInit11 : string "|         @@@ @@@ @ @ @@@              |"
 TelaInit12 : string "|         @   @ @ @@@ @                |"
@@ -1535,9 +1511,9 @@ telaFim20 : string "|                                      |"
 telaFim21 : string "|                   POINTS             |"
 telaFim22 : string "|                                      |"
 telaFim23 : string "|                                      |"
+telaFim24 : string "|                                      |"
 telaFim24 : string "|        Press any key to restart      |"
 telaFim25 : string "|        _____ ___ ___ __ _______      |"
 telaFim26 : string "|                                      |"
-telaFim27 : string "|                                      |"
 telaFim28 : string "|                                      |"
 telaFim29 : string "|======================================|"
