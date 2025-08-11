@@ -865,6 +865,8 @@ adivinheNumMaior27 : string "                                        "
 adivinheNumMaior28 : string "                                        "
 adivinheNumMaior29 : string "                                        "
 
+
+
 ;---------------------------------- TELA TOO SMALL----------------------------------------------------------------	
 adivinheNumMenor0  : string "                                        "
 adivinheNumMenor1  : string "                                        "
