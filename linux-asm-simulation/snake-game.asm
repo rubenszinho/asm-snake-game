@@ -1014,6 +1014,9 @@ DrawSnake:
     DrawSnakeLoop:
         loadi r3, r2           ; Carrega a posição anterior do corpo da cobra
         outchar r1, r0         ; Imprime a posição atual da cobra
+        nop
+        nop
+        nop
         outchar r5, r3         ; Apaga a posição anterior
         loadn r1, #2639        ; Define o corpo com o caractere '0' após o primeiro loop
         storei r2, r0          ; Armazena a posição atual no vetor SnakeBody
