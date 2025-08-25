@@ -1336,7 +1336,7 @@ Delay:
 
     loadn r1, #400            ; Define o valor inicial do contador externo
     DelayLoop2:
-        loadn r0, #300       ; Define o valor inicial do contador interno
+        loadn r0, #250       ; Define o valor inicial do contador interno
     DelayLoop:
         dec r0                ; Decrementa o contador interno
         jnz DelayLoop         ; Se não zero, repete o loop interno
